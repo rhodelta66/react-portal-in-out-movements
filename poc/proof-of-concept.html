@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Pallet Movements Dashboard - Period View</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --warning-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+        }
+
+        .dashboard-header {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .dashboard-title {
+            font-weight: 700;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .stats-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border: none;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        }
+
+        .stats-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            margin-bottom: 1rem;
+        }
+
+        .stats-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .stats-label {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .table-header {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 1.5rem;
+            border-bottom: none;
+        }
+
+        .custom-table {
+            margin-bottom: 0;
+        }
+
+        .custom-table thead th {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: none;
+            color: #495057;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.8rem;
+            padding: 1rem;
+        }
+
+        .custom-table tbody tr {
+            transition: all 0.3s ease;
+        }
+
+        .custom-table tbody tr:hover {
+            background-color: rgba(102, 126, 234, 0.1);
+            transform: scale(1.01);
+        }
+
+        .custom-table td {
+            padding: 1rem;
+            vertical-align: middle;
+            border-color: #e9ecef;
+        }
+
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .status-available {
+            background: var(--success-gradient);
+            color: white;
+        }
+
+        .status-shipped {
+            background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%);
+            color: white;
+        }
+
+        .status-out {
+            background: linear-gradient(135deg, #636e72 0%, #2d3436 100%);
+            color: white;
+        }
+
+        .pagination-container {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .pagination .page-link {
+            border: none;
+            margin: 0 2px;
+            border-radius: 10px;
+            padding: 10px 15px;
+            color: #667eea;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+
+        .pagination .page-item.active .page-link {
+            background: var(--primary-gradient);
+            border: none;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .pagination .page-link:hover {
+            background: var(--primary-gradient);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 3rem;
+        }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+            color: #667eea;
+        }
+
+        .filters-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .btn-custom {
+            background: var(--primary-gradient);
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+
+        .btn-detail {
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-detail:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(116, 185, 255, 0.4);
+            color: white;
+        }
+
+        .modal-header {
+            background: var(--primary-gradient);
+            color: white;
+            border-bottom: none;
+        }
+
+        .modal-content {
+            border: none;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .detail-row {
+            padding: 12px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .detail-value {
+            font-size: 1.1rem;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        .detail-value code {
+            background: #f8f9fa;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+
+        .pallet-id {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #e17055 0%, #fdcb6e 100%);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            display: inline-block;
+            margin-top: 5px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .page-info {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+            color: #2d3436;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-filter {
+            margin-bottom: 1rem;
+        }
+
+        .status-filter .btn {
+            margin: 0 5px 10px 0;
+            border-radius: 20px;
+            padding: 8px 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+
+        .status-filter .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+
+        .date-range-badge {
+            background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            display: inline-block;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="dashboard-title mb-2">
+                        <i class="fas fa-warehouse me-3"></i>
+                        Pallet Movements - Period Analysis
+                    </h1>
+                    <p class="mb-0 fs-5">MACANT Facility Dashboard</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="text-white-50">
+                        <i class="fas fa-calendar me-2"></i>
+                        <span id="currentDate"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Professional Footer - ->
+    <footer class="mt-5" style="background: var(--primary-gradient); color: white; padding: 3rem 0 2rem;">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-4 text-center text-md-start mb-3 mb-md-0">
+                    <div class="d-flex align-items-center justify-content-center justify-content-md-start">
+                        <div class="me-3" style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-building fa-2x"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-1 fw-bold">Tracy Data Solutions BV</h5>
+                            <p class="mb-0 text-white-50">Warehouse Management Excellence</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 text-center mb-3 mb-md-0">
+                    <div class="d-flex align-items-center justify-content-center mb-2">
+                        <i class="fas fa-phone-alt me-2"></i>
+                        <a href="tel:+31107441813" class="text-white text-decoration-none fw-semibold">
+                            +31 10 744 18 13
+                        </a>
+                    </div>
+                    <small class="text-white-50">Business Hours: Mon-Fri 9:00-17:00 CET</small>
+                </div>
+
+                <div class="col-md-4 text-center text-md-end">
+                    <div class="d-flex flex-column align-items-center align-items-md-end">
+                        <div class="mb-2">
+                            <small class="text-white-50 d-block mb-2">Our Solutions:</small>
+                            <div class="d-flex flex-wrap justify-content-center justify-content-md-end gap-3">
+                                <a href="https://wmsx.nl" target="_blank" class="text-white text-decoration-none d-flex align-items-center"
+                                   style="transition: all 0.3s ease;"
+                                   onmouseover="this.style.transform='translateY(-2px)'; this.style.textShadow='0 2px 8px rgba(255,255,255,0.3)'"
+                                   onmouseout="this.style.transform='translateY(0)'; this.style.textShadow='none'">
+                                    <i class="fas fa-warehouse me-1"></i>
+                                    wmsx.nl
+                                </a>
+                                <a href="https://tracy.nu" target="_blank" class="text-white text-decoration-none d-flex align-items-center"
+                                   style="transition: all 0.3s ease;"
+                                   onmouseover="this.style.transform='translateY(-2px)'; this.style.textShadow='0 2px 8px rgba(255,255,255,0.3)'"
+                                   onmouseout="this.style.transform='translateY(0)'; this.style.textShadow='none'">
+                                    <i class="fas fa-chart-line me-1"></i>
+                                    tracy.nu
+                                </a>
+                                <a href="https://tsql.app" target="_blank" class="text-white text-decoration-none d-flex align-items-center"
+                                   style="transition: all 0.3s ease;"
+                                   onmouseover="this.style.transform='translateY(-2px)'; this.style.textShadow='0 2px 8px rgba(255,255,255,0.3)'"
+                                   onmouseout="this.style.transform='translateY(0)'; this.style.textShadow='none'">
+                                    <i class="fas fa-database me-1"></i>
+                                    tsql.app
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <hr style="border-color: rgba(255,255,255,0.2); margin: 2rem 0 1rem;">
+
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start">
+                    <small class="text-white-50">
+                        © 2025 Tracy Data Solutions BV. Professional Warehouse Management Systems.
+                    </small>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <small class="text-white-50">
+                        <i class="fas fa-code me-1"></i>
+                        Powered by TSQL.APP Framework
+                    </small>
+                </div>
+            </div>
+        </div>
+    </footer> -->
+
+    <!-- Pallet Detail Modal -->
+    <div class="modal fade" id="palletDetailModal" tabindex="-1" aria-labelledby="palletDetailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="palletDetailModalLabel">
+                        <i class="fas fa-pallet me-2"></i>
+                        Pallet Details
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="modalBodyContent">
+                    <!-- Content will be populated dynamically -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Statistics Cards -->
+        <div class="row" id="statsContainer">
+            <div class="col-md-3">
+                <div class="stats-card animate-in">
+                    <div class="stats-icon" style="background: var(--primary-gradient);">
+                        <i class="fas fa-pallet"></i>
+                    </div>
+                    <div class="stats-value" id="totalPallets">-</div>
+                    <div class="stats-label">Total Pallets</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card animate-in" style="animation-delay: 0.1s;">
+                    <div class="stats-icon" style="background: var(--success-gradient);">
+                        <i class="fas fa-boxes"></i>
+                    </div>
+                    <div class="stats-value" id="totalStock">-</div>
+                    <div class="stats-label">Pallets In Movement</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card animate-in" style="animation-delay: 0.2s;">
+                    <div class="stats-icon" style="background: var(--warning-gradient);">
+                        <i class="fas fa-shipping-fast"></i>
+                    </div>
+                    <div class="stats-value" id="totalContainers">-</div>
+                    <div class="stats-label">Containers</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card animate-in" style="animation-delay: 0.3s;">
+                    <div class="stats-icon" style="background: var(--secondary-gradient);">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <div class="stats-value" id="totalClients">-</div>
+                    <div class="stats-label">Clients</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-card animate-in" style="animation-delay: 0.4s;">
+            <div class="row align-items-end mb-3">
+                <div class="col-md-4">
+                    <label class="form-label">
+                        <i class="fas fa-calendar-alt me-2"></i>
+                        Start Date
+                    </label>
+                    <div class="input-group">
+                        <input type="date" class="form-select" id="startDateFilter" style="border-radius: 8px;">
+                        <button class="btn btn-outline-primary ms-2" onclick="setDefaultStartDate()" title="Default (30 days ago)">
+                            <i class="fas fa-calendar-minus"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">
+                        <i class="fas fa-calendar-check me-2"></i>
+                        End Date
+                    </label>
+                    <div class="input-group">
+                        <input type="date" class="form-select" id="endDateFilter" style="border-radius: 8px;">
+                        <button class="btn btn-outline-primary ms-2" onclick="setToday()" title="Today">
+                            <i class="fas fa-calendar-day"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Records per page</label>
+                    <select class="form-select" id="recordsPerPage">
+                        <option value="10">10 records</option>
+                        <option value="25" selected>25 records</option>
+                        <option value="50">50 records</option>
+                        <option value="100">100 records</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row align-items-end mb-3">
+                <div class="col-md-12 text-center">
+                    <div class="date-range-badge">
+                        <i class="fas fa-calendar-week me-2"></i>
+                        Period: <span id="dateRangeDisplay" class="fw-bold">-</span>
+                        <span class="ms-3"><i class="fas fa-calendar-day me-1"></i><span id="dayCount">0</span> days</span>
+                    </div>
+                </div>
+            </div>
+            <div class="row align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label">Filter by Client</label>
+                    <select class="form-select" id="clientFilter">
+                        <option value="">All Clients</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Filter by Container</label>
+                    <select class="form-select" id="itemFilter">
+                        <option value="">All Containers</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Filter by Status</label>
+                    <select class="form-select" id="statusFilter">
+                        <option value="">All Status</option>
+                        <option value="available">Pallets In Movement</option>
+                        <option value="shipped">Pallets Out Movement</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-outline-secondary" onclick="dashboard.clearAllFilters()" style="height: 38px;">
+                        <i class="fas fa-eraser me-2"></i>
+                        Clear Filters
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div class="loading-spinner" id="loadingSpinner">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <div class="mt-3">Loading pallet data for date range...</div>
+        </div>
+
+        <!-- Data Table -->
+        <div class="table-container animate-in" id="tableContainer" style="animation-delay: 0.5s;">
+            <div class="table-header">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h4 class="mb-0">
+                            <i class="fas fa-table me-2"></i>
+                            Container Summary Detail - Period View
+                        </h4>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <div class="page-info" id="pageInfo">
+                            Page 1 of 1 (0 records)
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table custom-table">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-user me-2"></i>Client</th>
+                            <th><i class="fas fa-ship me-2"></i>Container</th>
+                            <th><i class="fas fa-file-alt me-2"></i>BL Number</th>
+                            <th><i class="fas fa-pallet me-2"></i>Pallets</th>
+                            <th><i class="fas fa-calendar me-2"></i>In Date</th>
+                            <th><i class="fas fa-calendar-times me-2"></i>Out Date</th>
+                            <th><i class="fas fa-info-circle me-2"></i>Status</th>
+                            <th><i class="fas fa-eye me-2"></i>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Data will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-container animate-in" id="paginationContainer" style="animation-delay: 0.6s;">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <div class="text-muted">
+                        Showing <span id="recordsInfo">0</span> records
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <nav aria-label="Pagination">
+                        <ul class="pagination justify-content-end mb-0" id="pagination">
+                            <!-- Pagination will be populated here -->
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        class PalletDashboard {
+            constructor() {
+                this.apiBaseUrl = 'https://apide2.tsql.app/rws/v1/daily_pallet_movements_compressed_period';
+                this.currentPage = 1;
+                this.recordsPerPage = 25;
+                this.totalRecords = 0;
+                this.totalPages = 0;
+                this.allData = [];
+                this.filteredData = [];
+                this.clientFilter = '';
+                this.itemFilter = '';
+                this.statusFilter = '';
+                this.startDate = this.getDefaultStartDate();
+                this.endDate = this.getTodayString();
+
+                this.init();
+            }
+
+            init() {
+                this.setCurrentDate();
+                this.initializeDatePickers();
+                this.setupEventListeners();
+                this.loadData();
+            }
+
+            getTodayString() {
+                const today = new Date();
+                return today.toISOString().split('T')[0]; // Returns YYYY-MM-DD format
+            }
+
+            getDefaultStartDate() {
+                const today = new Date();
+                const thirtyDaysAgo = new Date(today);
+                thirtyDaysAgo.setDate(today.getDate() - 30);
+                return thirtyDaysAgo.toISOString().split('T')[0];
+            }
+
+            initializeDatePickers() {
+                const startDateFilter = document.getElementById('startDateFilter');
+                const endDateFilter = document.getElementById('endDateFilter');
+                startDateFilter.value = this.startDate;
+                endDateFilter.value = this.endDate;
+                this.updateDateRangeDisplay();
+            }
+
+            setCurrentDate() {
+                const now = new Date();
+                const options = {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                };
+                document.getElementById('currentDate').textContent = now.toLocaleDateString('en-US', options);
+            }
+
+            setupEventListeners() {
+                document.getElementById('recordsPerPage').addEventListener('change', (e) => {
+                    this.recordsPerPage = parseInt(e.target.value);
+                    this.currentPage = 1;
+                    this.renderTable();
+                    this.renderPagination();
+                });
+
+                document.getElementById('clientFilter').addEventListener('change', (e) => {
+                    this.clientFilter = e.target.value;
+                    this.applyFilters();
+                });
+
+                document.getElementById('itemFilter').addEventListener('change', (e) => {
+                    this.itemFilter = e.target.value;
+                    this.applyFilters();
+                });
+
+                document.getElementById('statusFilter').addEventListener('change', (e) => {
+                    this.statusFilter = e.target.value;
+                    this.applyFilters();
+                });
+
+                document.getElementById('startDateFilter').addEventListener('change', (e) => {
+                    this.startDate = e.target.value;
+                    this.updateDateRangeDisplay();
+                    this.loadData();
+                });
+
+                document.getElementById('endDateFilter').addEventListener('change', (e) => {
+                    this.endDate = e.target.value;
+                    this.updateDateRangeDisplay();
+                    this.loadData();
+                });
+            }
+
+            updateDateRangeDisplay() {
+                const startDate = new Date(this.startDate);
+                const endDate = new Date(this.endDate);
+                const options = { year: 'numeric', month: 'short', day: 'numeric' };
+                const startStr = startDate.toLocaleDateString('en-US', options);
+                const endStr = endDate.toLocaleDateString('en-US', options);
+
+                document.getElementById('dateRangeDisplay').textContent = `${startStr} → ${endStr}`;
+
+                // Calculate day count
+                const diffTime = Math.abs(endDate - startDate);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                document.getElementById('dayCount').textContent = diffDays;
+            }
+
+            async loadData() {
+                this.showLoading(true);
+
+                try {
+                    // Load all data by making multiple requests with date range
+                    let allData = [];
+                    let offset = 0;
+                    let hasMore = true;
+
+                    while (hasMore) {
+                        const url = `${this.apiBaseUrl}?ffa_code=MACANT&date=${this.startDate}&end_date=${this.endDate}&offset=${offset}&max=100`;
+                        const response = await fetch(url);
+                        const data = await response.json();
+
+                        allData = allData.concat(data.data);
+
+                        if (data.next && allData.length < data.total) {
+                            offset += 100;
+                        } else {
+                            hasMore = false;
+                        }
+
+                        // Update progress
+                        this.totalRecords = data.total;
+                        this.updateStats(allData, data.total);
+                    }
+
+                    this.allData = allData;
+                    this.filteredData = [...allData];
+                    this.populateFilters();
+                    this.renderTable();
+                    this.renderPagination();
+
+                } catch (error) {
+                    console.error('Error loading data:', error);
+                    this.showError(`Failed to load pallet data for period ${this.startDate} to ${this.endDate}. Please try again.`);
+                } finally {
+                    this.showLoading(false);
+                }
+            }
+
+            showLoading(show) {
+                const spinner = document.getElementById('loadingSpinner');
+                const container = document.getElementById('tableContainer');
+
+                if (show) {
+                    spinner.style.display = 'block';
+                    container.style.display = 'none';
+                } else {
+                    spinner.style.display = 'none';
+                    container.style.display = 'block';
+                }
+            }
+
+            showError(message) {
+                const tbody = document.getElementById('tableBody');
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center text-danger p-5">
+                            <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+                            <div class="h5">${message}</div>
+                        </td>
+                    </tr>
+                `;
+            }
+
+            updateStats(data, total) {
+                const uniqueContainers = [...new Set(data.map(item => item.container_number))].length;
+                const uniqueClients = [...new Set(data.map(item => item.client_code))].length;
+                const totalPallets = data.reduce((sum, item) => sum + (item.pallets || 0), 0);
+
+                // PALLETS IN: out_date is NULL OR out_date equals in_date
+                const palletsIn = data.filter(item => !item.out_date || (item.out_date && item.in_date && item.out_date === item.in_date)).reduce((sum, item) => sum + (item.pallets || 0), 0);
+                // PALLETS OUT: out_date exists and is different from in_date
+                const palletsOut = data.filter(item => item.out_date && (!item.in_date || item.out_date !== item.in_date)).reduce((sum, item) => sum + (item.pallets || 0), 0);
+
+                document.getElementById('totalPallets').textContent = totalPallets.toLocaleString();
+                document.getElementById('totalStock').textContent = palletsIn.toLocaleString();
+                document.getElementById('totalContainers').textContent = uniqueContainers;
+                document.getElementById('totalClients').textContent = uniqueClients;
+
+                // Update stats cards with new terminology
+                if (data.length > 0) {
+                    const statsCards = document.querySelectorAll('.stats-value');
+                    statsCards[0].textContent = totalPallets.toLocaleString();
+                    statsCards[0].nextElementSibling.textContent = 'Total Pallets';
+
+                    statsCards[1].textContent = palletsIn.toLocaleString();
+                    statsCards[1].nextElementSibling.textContent = 'Pallets In Movement';
+
+                    const containerCard = statsCards[2].parentElement;
+                    containerCard.querySelector('.stats-icon').style.background = 'var(--warning-gradient)';
+                    containerCard.querySelector('.stats-icon i').className = 'fas fa-shipping-fast';
+                    statsCards[2].textContent = palletsOut.toLocaleString();
+                    statsCards[2].nextElementSibling.textContent = 'Pallets Out Movement';
+
+                    statsCards[3].textContent = uniqueContainers;
+                    statsCards[3].nextElementSibling.textContent = 'Containers';
+                }
+            }
+
+            populateFilters() {
+                const clientFilter = document.getElementById('clientFilter');
+                const itemFilter = document.getElementById('itemFilter');
+
+                const uniqueClients = [...new Set(this.allData.map(item => item.client_code))];
+                const uniqueContainers = [...new Set(this.allData.map(item => item.container_number))];
+
+                clientFilter.innerHTML = '<option value="">All Clients</option>';
+                uniqueClients.forEach(client => {
+                    clientFilter.innerHTML += `<option value="${client}">${client}</option>`;
+                });
+
+                itemFilter.innerHTML = '<option value="">All Containers</option>';
+                uniqueContainers.forEach(container => {
+                    itemFilter.innerHTML += `<option value="${container}">${container}</option>`;
+                });
+            }
+
+            applyFilters() {
+                this.filteredData = this.allData.filter(item => {
+                    const clientMatch = !this.clientFilter || item.client_code === this.clientFilter;
+                    const containerMatch = !this.itemFilter || item.container_number === this.itemFilter;
+                    const statusMatch = !this.statusFilter ||
+                        (this.statusFilter === 'available' && !item.out_date) ||
+                        (this.statusFilter === 'shipped' && item.out_date);
+                    return clientMatch && containerMatch && statusMatch;
+                });
+
+                this.currentPage = 1;
+                this.renderTable();
+                this.renderPagination();
+            }
+
+            renderTable() {
+                const tbody = document.getElementById('tableBody');
+                const startIndex = (this.currentPage - 1) * this.recordsPerPage;
+                const endIndex = startIndex + this.recordsPerPage;
+                const pageData = this.filteredData.slice(startIndex, endIndex);
+
+                tbody.innerHTML = '';
+
+                pageData.forEach((item, index) => {
+                    const row = document.createElement('tr');
+                    row.style.animationDelay = `${index * 0.05}s`;
+                    row.className = 'animate-in';
+
+                    // Determine status based on out_date
+                    let statusClass, statusText, statusIcon;
+                    if (item.out_date) {
+                        statusClass = 'status-shipped';
+                        statusText = 'Pallets Out';
+                        statusIcon = 'fas fa-truck';
+                    } else {
+                        statusClass = 'status-available';
+                        statusText = 'Pallets In';
+                        statusIcon = 'fas fa-check-circle';
+                    }
+
+                    // Handle NULL date displays
+                    const inDateDisplay = item.in_date ? new Date(item.in_date).toLocaleDateString() : '<span class="text-muted">N/A</span>';
+                    const outDateDisplay = item.out_date ? new Date(item.out_date).toLocaleDateString() : '<span class="text-muted">-</span>';
+
+                    row.innerHTML = `
+                        <td><strong>${item.client_code}</strong></td>
+                        <td><span class="text-muted">${item.container_number}</span></td>
+                        <td><span class="text-muted">${item.bl_number}</span></td>
+                        <td><span class="badge bg-primary">${item.pallets} pallets</span></td>
+                        <td>${inDateDisplay}</td>
+                        <td>${outDateDisplay}</td>
+                        <td>
+                            <span class="status-badge ${statusClass}">
+                                <i class="${statusIcon} me-1"></i>${statusText}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn btn-detail" onclick="dashboard.showContainerDetails(${index + startIndex})">
+                                <i class="fas fa-eye me-1"></i>
+                                Details
+                            </button>
+                        </td>
+                    `;
+
+                    tbody.appendChild(row);
+                });
+
+                this.updatePageInfo();
+            }
+
+            renderPagination() {
+                this.totalPages = Math.ceil(this.filteredData.length / this.recordsPerPage);
+                const pagination = document.getElementById('pagination');
+
+                pagination.innerHTML = '';
+
+                if (this.totalPages <= 1) return;
+
+                // Previous button
+                const prevLi = document.createElement('li');
+                prevLi.className = `page-item ${this.currentPage === 1 ? 'disabled' : ''}`;
+                prevLi.innerHTML = `<a class="page-link" href="#" data-page="${this.currentPage - 1}"><i class="fas fa-chevron-left"></i></a>`;
+                pagination.appendChild(prevLi);
+
+                // Page numbers
+                const startPage = Math.max(1, this.currentPage - 2);
+                const endPage = Math.min(this.totalPages, this.currentPage + 2);
+
+                if (startPage > 1) {
+                    pagination.appendChild(this.createPageItem(1));
+                    if (startPage > 2) {
+                        const ellipsis = document.createElement('li');
+                        ellipsis.className = 'page-item disabled';
+                        ellipsis.innerHTML = '<span class="page-link">...</span>';
+                        pagination.appendChild(ellipsis);
+                    }
+                }
+
+                for (let i = startPage; i <= endPage; i++) {
+                    pagination.appendChild(this.createPageItem(i));
+                }
+
+                if (endPage < this.totalPages) {
+                    if (endPage < this.totalPages - 1) {
+                        const ellipsis = document.createElement('li');
+                        ellipsis.className = 'page-item disabled';
+                        ellipsis.innerHTML = '<span class="page-link">...</span>';
+                        pagination.appendChild(ellipsis);
+                    }
+                    pagination.appendChild(this.createPageItem(this.totalPages));
+                }
+
+                // Next button
+                const nextLi = document.createElement('li');
+                nextLi.className = `page-item ${this.currentPage === this.totalPages ? 'disabled' : ''}`;
+                nextLi.innerHTML = `<a class="page-link" href="#" data-page="${this.currentPage + 1}"><i class="fas fa-chevron-right"></i></a>`;
+                pagination.appendChild(nextLi);
+
+                // Add event listeners
+                pagination.querySelectorAll('a[data-page]').forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const page = parseInt(e.target.closest('a').dataset.page);
+                        if (page >= 1 && page <= this.totalPages && page !== this.currentPage) {
+                            this.currentPage = page;
+                            this.renderTable();
+                            this.renderPagination();
+                        }
+                    });
+                });
+            }
+
+            createPageItem(pageNum) {
+                const li = document.createElement('li');
+                li.className = `page-item ${pageNum === this.currentPage ? 'active' : ''}`;
+                li.innerHTML = `<a class="page-link" href="#" data-page="${pageNum}">${pageNum}</a>`;
+                return li;
+            }
+
+            updatePageInfo() {
+                const startRecord = (this.currentPage - 1) * this.recordsPerPage + 1;
+                const endRecord = Math.min(this.currentPage * this.recordsPerPage, this.filteredData.length);
+
+                document.getElementById('pageInfo').textContent =
+                    `Page ${this.currentPage} of ${this.totalPages} (${this.filteredData.length} records)`;
+
+                document.getElementById('recordsInfo').textContent =
+                    `${startRecord}-${endRecord} of ${this.filteredData.length}`;
+            }
+
+            showContainerDetails(index) {
+                const container = this.filteredData[index];
+                const modal = new bootstrap.Modal(document.getElementById('palletDetailModal'));
+                const modalBody = document.getElementById('modalBodyContent');
+
+                // Determine detailed status information
+                let statusInfo = '';
+                let timeInfo = '';
+
+                if (container.out_date) {
+                    statusInfo = `
+                        <div class="detail-row">
+                            <div class="detail-label">Warehouse Status</div>
+                            <div class="detail-value">
+                                <span class="status-badge status-shipped">
+                                    <i class="fas fa-truck me-1"></i>Pallets Out (This Period)
+                                </span>
+                            </div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Out Date</div>
+                            <div class="detail-value">
+                                <i class="fas fa-sign-out-alt me-2 text-danger"></i>
+                                <strong>${new Date(container.out_date).toLocaleString()}</strong>
+                            </div>
+                        </div>
+                    `;
+
+                    // Only calculate time if in_date is available
+                    if (container.in_date) {
+                        const inDate = new Date(container.in_date);
+                        const outDate = new Date(container.out_date);
+                        const daysInWarehouse = Math.ceil((outDate - inDate) / (1000 * 60 * 60 * 24));
+                        const hoursInWarehouse = Math.ceil((outDate - inDate) / (1000 * 60 * 60));
+
+                        timeInfo = `
+                            <div class="detail-row">
+                                <div class="detail-label">Total Time in Warehouse</div>
+                                <div class="detail-value">
+                                    <span class="badge" style="background: var(--secondary-gradient); color: white; font-size: 1rem;">
+                                        ${daysInWarehouse} days (${hoursInWarehouse} hours)
+                                    </span>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        timeInfo = `
+                            <div class="detail-row">
+                                <div class="detail-label">Total Time in Warehouse</div>
+                                <div class="detail-value">
+                                    <span class="text-muted">Not available (no in_date recorded)</span>
+                                </div>
+                            </div>
+                        `;
+                    }
+                } else {
+                    statusInfo = `
+                        <div class="detail-row">
+                            <div class="detail-label">Warehouse Status</div>
+                            <div class="detail-value">
+                                <span class="status-badge status-available">
+                                    <i class="fas fa-check-circle me-1"></i>Pallets In (This Period)
+                                </span>
+                            </div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Out Date</div>
+                            <div class="detail-value">
+                                <i class="fas fa-clock me-2 text-success"></i>
+                                <span class="text-muted">Still in warehouse</span>
+                            </div>
+                        </div>
+                    `;
+
+                    if (container.in_date) {
+                        const inDate = new Date(container.in_date);
+                        const today = new Date();
+                        const daysInWarehouse = Math.ceil((today - inDate) / (1000 * 60 * 60 * 24));
+                        const hoursInWarehouse = Math.ceil((today - inDate) / (1000 * 60 * 60));
+
+                        timeInfo = `
+                            <div class="detail-row">
+                                <div class="detail-label">Current Time in Warehouse</div>
+                                <div class="detail-value">
+                                    <span class="badge" style="background: var(--success-gradient); color: white; font-size: 1rem;">
+                                        ${daysInWarehouse} days (${hoursInWarehouse} hours)
+                                    </span>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+
+                modalBody.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="detail-row">
+                                <div class="detail-label">Container Number</div>
+                                <div class="detail-value">
+                                    <span style="font-size: 1.5rem; font-weight: 700; color: var(--primary-color);">
+                                        ${container.container_number}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="detail-row">
+                                <div class="detail-label">Client Code</div>
+                                <div class="detail-value"><strong>${container.client_code}</strong></div>
+                            </div>
+
+                            <div class="detail-row">
+                                <div class="detail-label">Facility Code</div>
+                                <div class="detail-value"><code>${container.ffa_code}</code></div>
+                            </div>
+
+                            <div class="detail-row">
+                                <div class="detail-label">Bill of Lading</div>
+                                <div class="detail-value"><code>${container.bl_number}</code></div>
+                            </div>
+
+                            <div class="detail-row">
+                                <div class="detail-label">Total Pallets in Container</div>
+                                <div class="detail-value">
+                                    <span class="badge bg-primary" style="font-size: 1.1rem; padding: 8px 15px;">
+                                        ${container.pallets} pallets
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            ${statusInfo}
+
+                            <div class="detail-row">
+                                <div class="detail-label">In Date</div>
+                                <div class="detail-value">${container.in_date ? new Date(container.in_date).toLocaleString() : '<span class="text-muted">Not available (shipped out)</span>'}</div>
+                            </div>
+
+                            ${timeInfo}
+                        </div>
+                    </div>
+                `;
+
+                // Update modal title with container number
+                document.getElementById('palletDetailModalLabel').innerHTML = `
+                    <i class="fas fa-ship me-2"></i>
+                    Container ${container.container_number} - ${container.client_code}
+                `;
+
+                modal.show();
+            }
+
+            async refreshData() {
+                await this.loadData();
+            }
+
+            clearAllFilters() {
+                // Reset all filters
+                this.clientFilter = '';
+                this.itemFilter = '';
+                this.statusFilter = '';
+
+                // Reset UI elements
+                document.getElementById('clientFilter').value = '';
+                document.getElementById('itemFilter').value = '';
+                document.getElementById('statusFilter').value = '';
+
+                // Apply cleared filters
+                this.applyFilters();
+
+                // Show feedback
+                const toast = document.createElement('div');
+                toast.className = 'position-fixed top-0 end-0 p-3';
+                toast.style.zIndex = '9999';
+                toast.innerHTML = `
+                    <div class="toast show" role="alert">
+                        <div class="toast-header bg-info text-white">
+                            <i class="fas fa-eraser me-2"></i>
+                            <strong class="me-auto">Filters Cleared</strong>
+                        </div>
+                        <div class="toast-body">
+                            All filters have been reset. Showing all movement records for selected period.
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(toast);
+
+                // Remove toast after 3 seconds
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 3000);
+            }
+        }
+
+        // Global functions
+        window.refreshData = function() {
+            dashboard.refreshData();
+        };
+
+        window.setToday = function() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('endDateFilter').value = today;
+            dashboard.endDate = today;
+            dashboard.updateDateRangeDisplay();
+            dashboard.loadData();
+        };
+
+        window.setDefaultStartDate = function() {
+            const today = new Date();
+            const thirtyDaysAgo = new Date(today);
+            thirtyDaysAgo.setDate(today.getDate() - 30);
+            const startDate = thirtyDaysAgo.toISOString().split('T')[0];
+            document.getElementById('startDateFilter').value = startDate;
+            dashboard.startDate = startDate;
+            dashboard.updateDateRangeDisplay();
+            dashboard.loadData();
+        };
+
+        // Initialize dashboard when page loads
+        let dashboard;
+        document.addEventListener('DOMContentLoaded', function() {
+            dashboard = new PalletDashboard();
+        });
+    </script>
+</body>
+</html>

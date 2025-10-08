@@ -1,0 +1,40 @@
+import React, { useContext } from 'react';
+import { NavLink } from "react-router-dom";
+import { UserContext } from './services/UserContext'
+import logo from './img/tracy.png';
+
+export default function () {
+    const user = useContext(UserContext);
+    //    console.log(user.authenticated);
+    return (
+        <header>
+            <nav className="navbar navbar-expand-md navbar-light  border-bottom border-primary">
+                <div className="container" data-toggle="collapse" data-target=".navbar-collapse.show">
+                    <button className="navbar-toggler navbar-toggler-right border-0" type="button" data-toggle="collapse" data-target="#navbar3">
+                        <span className="navbar-toggler-icon"></span>
+                    </button>
+                    <img src={logo} alt="Logo" style={{maxHeight:'32px'}} className="ml-3 d-block d-sm-none" />
+                    <img src={logo} alt="Logo" style={{maxHeight:'48px'}} className="mx-2 d-none d-sm-block" />
+                    <NavLink activeClassName="active" exact className="nav-link text-secondary h2 mb-1 m-0 p-0 font-weight-normal" to="/"><em>Tracy</em></NavLink>
+                    <div className="px-4 collapse navbar-collapse text-center justify-content-start" id="navbar3">
+                        <ul className="navbar-nav">
+                            <li className="nav-item mx-2"><NavLink activeClassName="active" exact className="nav-link" to="/">Software</NavLink></li>
+                            <li className="nav-item mx-2"><NavLink activeClassName="active" className="nav-link" to="/support">Support</NavLink></li>
+                            <li className="nav-item mx-2"><NavLink activeClassName="active" className="nav-link" to="/over-ons">Over ons</NavLink></li>
+                            <li className="nav-item mx-2"><NavLink activeClassName="active" className="nav-link" to="/contact">Contact</NavLink></li>
+                            {
+                                user.authenticated ?
+                                    <>
+                                        <li className="nav-item mx-2"><NavLink activeClassName="active" className="nav-link" to="/account/user">{user.claims.sub}</NavLink></li>
+                                        <li className="nav-item mx-2"><NavLink onClick={user.logOut} activeClassName="active" to={window.location.pathname} className="nav-link">Log uit</NavLink></li>
+                                    </>
+                                    :
+                                    <li className="nav-item mx-2"><NavLink activeClassName="active" className="nav-link" to="/account/login">Log in</NavLink></li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+        </header>
+    );
+}

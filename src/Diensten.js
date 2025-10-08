@@ -1,0 +1,47 @@
+import React from 'react';
+//import { NavLink } from "react-router-dom";
+import Blok from "./Blok";
+import Title from "./Title";
+
+export default function () {
+	return (
+		<section>
+			<Title>Software voor AGF Handel, Import en Export</Title>
+			<div className="row m-0">
+				<Blok title="Web-based AGF software" icon="chrome" full>
+					Stel uw eigen rollen in voor gebruikers en beperk of geef toegang tot bepaalde onderdelen in de applicatie.
+					Maak hierdoor enkel de relevante schermen beschikbaar voor uw loods, verkoop, inkoop en facturatieafdeling beschikbaar.
+                        </Blok>
+				<Blok title="Op uw wensen ingesteld" icon="sliders">
+					Een applicatie welke naar uw voorkeur is ingedeeld.
+					Tracy biedt de functionaliteit om ingedeeld te worden exact zoals u dat wilt.
+					Wij bieden een keuze uit meer dan 800+ verschillende iconen welke gebruikt kunnen worden voor uw menu,
+					of als status indicatie.
+                        </Blok>
+				<Blok title="Security" icon="shield">
+					Bij al onze oplossingen wordt de data veilig opgeslagen bij meerdere Nederlandse datacenters.
+                        </Blok>
+				<Blok title="Direct en simpel inzicht met Statistieken" icon="bar-chart">
+					Altijd inzicht over uw afdelingen.
+					Zeer eenvoudig instelbare statistieken verkrijgen van verschillende afdelingen (loods, verkoop, inkoop, voorraad, facturatie, etc.).
+					Deze informatie kan worden weergegeven in verschillende tabellen direct in de applicatie en is exporteerbaar voor gebruik in Excel.
+                        </Blok>
+				<Blok title="Role management" icon="users">
+					Stel uw eigen rollen in voor gebruikers en beperk of geef toegang tot bepaalde onderdelen in de applicatie.
+					Maak hierdoor enkel de relevante schermen beschikbaar voor uw loods, verkoop, inkoop, facturatieafdeling beschikbaar.
+                        </Blok>
+				<Blok title="Voorraad, Transport, logistiek" icon="truck">
+					Grip op uw voorraad, transport en de inkomende en uitgaande logistiek.
+					Inzicht over huidige voorraad en verwachte goederen.
+					Emballage registratie welke informatie voorziet zoals geschatte pallet bezetting zowel voor euro als blok pallets.
+					Inkomende en uitgaande logistiek zijn mogelijk met barcode-scanning of biometrische toegangscontrole.
+						</Blok>
+				<Blok title="Communiceer &amp; werk in meerdere talen" icon="language">
+					Wij bieden meerdere talen ondersteuning voor onze applicaties.
+					Dit biedt de mogelijkheid om de applicatie in Nederlands, Engels, Frans, Duits, Spaans of in andere talen weer te geven.
+					Het vertaal systeem kan ook gebruikt worden bij ons Report-systeem, hierdoor kan u ervoor kiezen om uw factuur, orderbevestiging of laadlijst in één van deze talen te versturen.
+                        </Blok>
+			</div>
+		</section>
+	);
+}

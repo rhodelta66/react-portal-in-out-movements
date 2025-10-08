@@ -1,0 +1,140 @@
+import React from 'react';
+import OAuth from './OAuth';
+
+export const UserContext = React.createContext();
+
+export class UserProvider extends React.Component {
+	constructor(props) {
+		super(props);
+		this.auth = new OAuth({ server: props.server });
+		this.setState = this.setState.bind(this);
+		this.getToken = this.getToken.bind(this);
+		this.logOut = this.logOut.bind(this);
+		this.login = this.login.bind(this);
+		this.clear = this.clear.bind(this);
+		this.reset = this.reset.bind(this);
+		this.delete = this.delete.bind(this);
+		this.refresh = this.refresh.bind(this);
+		this.signup = this.signup.bind(this);
+
+		this.state = {
+			username: "",
+			set: this.setState,
+			setState: this.setState,
+			getToken: this.getToken,
+			login: this.login,
+			reset: this.reset,
+			delete: this.delete,
+			refresh: this.refresh,
+			signup: this.signup,
+			logOut: this.logOut,
+			authenticated: false,
+			token: null,
+			claims: {},
+			isAdmin: false,
+			error: "",
+			success: "",
+			resetHash: this.auth.reset_hash,
+
+
+		}
+		this.initialState = this.state;
+		this.getToken();
+	}
+	isAdmin(claims) {
+		if ('role' in claims) {
+			if (typeof claims.role === 'string') claims.role = [claims.role];
+			if (claims.role.includes('admin')) return true;
+		}
+		return false;
+	}
+	signup(username, password) {
+		this.clear();
+		this.auth.signup(username, password).then(data => {
+			if (data.error) {
+				this.setState({ error: data.error.message });
+				this.setclear(10);
+			} else if (data.success) {
+				this.setState({ success: data.success, resetHash: false });
+				//this.setclear(30);
+			}
+		});
+
+	}
+	reset(username, password = false, history = false, path = false) {
+		this.clear();
+		this.auth.reset(username, password).then(data => {
+			if (data.error) {
+				this.setState({ error: data.error.message });
+				this.setclear(10);
+			} else if (data.success) {
+				this.setState({ success: data.success, resetHash: false });
+				//this.setclear(30);
+				if (history && path) history.push(path);
+			}
+		});
+	}
+	setclear(seconds = 10) {
+		clearTimeout(this.timeout);
+		this.timeout = setTimeout(this.clear, seconds * 1000);
+	}
+	clear() {
+		this.setState({ error: "", success: "" });
+	}
+	delete(username, password, history = false, path = false) {
+		this.clear();
+		this.auth.delete(username, password).then(data => {
+			if (data.error) {
+				this.setState({ error: data.error.message });
+				this.setclear(10);
+
+			} else if (data.success) {
+				this.logOut();
+				this.setState({ success: data.success });
+				//if (history && path) history.push(path);
+			}
+		});
+	}
+	login(username, password, history = false, path = false) {
+		this.clear();
+		this.auth.login(username, password).then(data => {
+			if (data.error) {
+				this.setState({ error: data.error.message });
+				this.setclear(10);
+			} else if (data.uid) {
+				this.auth.setToken(data);
+				this.getToken().then(token => {
+					if (history && path) history.push(path);
+				});
+			}
+		});
+	}
+	logOut() {
+		this.auth.setToken({});
+		this.setState(this.initialState);
+	}
+	async refresh() {
+		var token = await this.auth.refresh();
+		if (!token || token.error) this.logOut();
+		console.log(token);
+		this.getToken();
+	}
+	async getToken() {
+		//console.log("getToken");
+		var token = await this.auth.getToken(true);
+
+		if (!token) return;
+		var claims = JSON.parse(window.atob(token.split(".")[1]));
+		var isAdmin = this.isAdmin(claims);
+		//console.log(token, claims, isAdmin,this.initialState);
+		if (token !== this.state.token) await this.setState({ token, claims, isAdmin, authenticated: true });
+		return token;
+	}
+	render() {
+		return (
+			<UserContext.Provider value={this.state}>
+				{this.props.children}
+			</UserContext.Provider>
+		);
+	}
+}
