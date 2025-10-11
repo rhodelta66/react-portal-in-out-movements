@@ -10,6 +10,7 @@ export default function Dashboard() {
 	const [filteredData, setFilteredData] = useState([]);
 	const [clientFilter, setClientFilter] = useState('');
 	const [itemFilter, setItemFilter] = useState('');
+	const [blNumberFilter, setBlNumberFilter] = useState('');
 	const [statusFilter, setStatusFilter] = useState('');
 	const [startDate, setStartDate] = useState(getDefaultStartDate());
 	const [endDate, setEndDate] = useState(getTodayString());
@@ -81,7 +82,7 @@ export default function Dashboard() {
 		if (user.authenticated) {
 			loadData();
 		}
-	}, [user.authenticated, loadData]);
+	}, [user.authenticated, startDate, endDate, loadData]);
 
 	// Update statistics
 	function updateStats(data) {
@@ -100,22 +101,27 @@ export default function Dashboard() {
 		});
 	}
 
-	// Apply filters
+	// Apply filters with partial matching
 	useEffect(() => {
 		const filtered = allData.filter(item => {
 			// Skip undefined or null items
 			if (!item || !item.client_code) return false;
 
-			const clientMatch = !clientFilter || item.client_code === clientFilter;
-			const containerMatch = !itemFilter || item.container_number === itemFilter;
+			// Case-insensitive partial matching for client, container, and BL number
+			const clientMatch = !clientFilter ||
+				item.client_code.toLowerCase().includes(clientFilter.toLowerCase());
+			const containerMatch = !itemFilter ||
+				item.container_number.toLowerCase().includes(itemFilter.toLowerCase());
+			const blNumberMatch = !blNumberFilter ||
+				(item.bl_number && item.bl_number.toLowerCase().includes(blNumberFilter.toLowerCase()));
 			const statusMatch = !statusFilter ||
 				(statusFilter === 'available' && !item.out_date) ||
 				(statusFilter === 'shipped' && item.out_date);
-			return clientMatch && containerMatch && statusMatch;
+			return clientMatch && containerMatch && blNumberMatch && statusMatch;
 		});
 		setFilteredData(filtered);
 		setCurrentPage(1);
-	}, [clientFilter, itemFilter, statusFilter, allData]);
+	}, [clientFilter, itemFilter, blNumberFilter, statusFilter, allData]);
 
 	// Get unique values for filters
 	const uniqueClients = [...new Set(allData.filter(item => item && item.client_code).map(item => item.client_code))];
@@ -141,11 +147,48 @@ export default function Dashboard() {
 	return (
 		<div style={{ width: '100%', minHeight: '100vh', background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)' }}>
 			<style>{`
+				@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&display=swap');
+
 				:root {
 					--primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 					--secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
 					--success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
 					--warning-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+				}
+
+				.ai-signature {
+					font-family: 'Caveat', cursive;
+					font-size: 1rem;
+					font-weight: 600;
+					color: rgba(255, 255, 255, 0.85);
+					text-align: right;
+					margin-top: 0.75rem;
+					line-height: 1.4;
+					letter-spacing: 0.5px;
+					text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+				}
+
+				.ai-signature a {
+					color: rgba(255, 255, 255, 0.95);
+					text-decoration: underline;
+					text-decoration-style: wavy;
+					text-decoration-color: rgba(255, 255, 255, 0.5);
+					transition: all 0.3s ease;
+				}
+
+				.ai-signature a:hover {
+					color: white;
+					text-decoration-color: white;
+				}
+
+				.ai-signature-icon {
+					display: inline-block;
+					animation: sparkle 2s ease-in-out infinite;
+				}
+
+				@keyframes sparkle {
+					0%, 100% { opacity: 1; transform: scale(1); }
+					50% { opacity: 0.7; transform: scale(1.1); }
 				}
 
 				.dashboard-header {
@@ -331,15 +374,21 @@ export default function Dashboard() {
 							<small>{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</small>
 						</div>
 						<div className="col-md-3 text-end">
-							<div className="d-flex align-items-center justify-content-end">
-								<span className="me-3 text-white-50">
-									<i className="fa fa-user me-2"></i>
-									{user.claims.sub}
-								</span>
-								<button className="btn btn-light" onClick={user.logOut}>
-									<i className="fa fa-sign-out-alt me-2"></i>
-									Log uit
-								</button>
+							<div className="d-flex flex-column align-items-end">
+								<div className="d-flex align-items-center justify-content-end mb-2">
+									<span className="me-3 text-white-50">
+										<i className="fa fa-user me-2"></i>
+										{user.claims.sub}
+									</span>
+									<button className="btn btn-light" onClick={user.logOut}>
+										<i className="fa fa-sign-out-alt me-2"></i>
+										Log uit
+									</button>
+								</div>
+								<div className="ai-signature">
+									<span className="ai-signature-icon">✨</span> This portal page is 100% created by AI<br />
+									Request <a href="https://tsql.app" target="_blank" rel="noopener noreferrer">tsql.app</a>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -400,6 +449,8 @@ export default function Dashboard() {
 								className="form-control"
 								value={startDate}
 								onChange={(e) => setStartDate(e.target.value)}
+								onKeyDown={(e) => e.preventDefault()}
+								style={{ cursor: 'pointer' }}
 							/>
 						</div>
 						<div className="col-md-4">
@@ -412,6 +463,8 @@ export default function Dashboard() {
 								className="form-control"
 								value={endDate}
 								onChange={(e) => setEndDate(e.target.value)}
+								onKeyDown={(e) => e.preventDefault()}
+								style={{ cursor: 'pointer' }}
 							/>
 						</div>
 						<div className="col-md-4">
@@ -433,43 +486,81 @@ export default function Dashboard() {
 							</div>
 						</div>
 					</div>
-					<div className="row">
+					<div className="row mb-3">
 						<div className="col-md-3">
-							<label className="form-label">Filter by Client</label>
-							<select className="form-control" value={clientFilter} onChange={(e) => setClientFilter(e.target.value)}>
-								<option value="">All Clients</option>
-								{uniqueClients.map(client => (
-									<option key={client} value={client}>{client}</option>
-								))}
-							</select>
+							<label className="form-label">
+								<i className="fa fa-search me-2"></i>
+								Filter by Client
+							</label>
+							<input
+								type="text"
+								className="form-control"
+								placeholder="Type to filter..."
+								value={clientFilter}
+								onChange={(e) => setClientFilter(e.target.value)}
+							/>
 						</div>
 						<div className="col-md-3">
-							<label className="form-label">Filter by Container</label>
-							<select className="form-control" value={itemFilter} onChange={(e) => setItemFilter(e.target.value)}>
-								<option value="">All Containers</option>
-								{uniqueContainers.map(container => (
-									<option key={container} value={container}>{container}</option>
-								))}
-							</select>
+							<label className="form-label">
+								<i className="fa fa-search me-2"></i>
+								Filter by Container
+							</label>
+							<input
+								type="text"
+								className="form-control"
+								placeholder="Type to filter..."
+								value={itemFilter}
+								onChange={(e) => setItemFilter(e.target.value)}
+							/>
 						</div>
 						<div className="col-md-3">
-							<label className="form-label">Filter by Status</label>
+							<label className="form-label">
+								<i className="fa fa-search me-2"></i>
+								Filter by BL Number
+							</label>
+							<input
+								type="text"
+								className="form-control"
+								placeholder="Type to filter..."
+								value={blNumberFilter}
+								onChange={(e) => setBlNumberFilter(e.target.value)}
+							/>
+						</div>
+						<div className="col-md-3">
+							<label className="form-label">
+								<i className="fa fa-filter me-2"></i>
+								Filter by Status
+							</label>
 							<select className="form-control" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
 								<option value="">All Status</option>
 								<option value="available">Pallets In Movement</option>
 								<option value="shipped">Pallets Out Movement</option>
 							</select>
 						</div>
-						<div className="col-md-3">
-							<label className="form-label">&nbsp;</label>
-							<button className="btn btn-outline-secondary d-block w-100" onClick={() => {
-								setClientFilter('');
-								setItemFilter('');
-								setStatusFilter('');
-							}}>
-								<i className="fa fa-eraser me-2"></i>
-								Clear Filters
-							</button>
+					</div>
+					<div className="row">
+						<div className="col-md-12">
+							<div className="d-flex justify-content-between align-items-center">
+								<div className="text-muted">
+									<i className="fa fa-filter me-2"></i>
+									Showing {filteredData.length} of {allData.length} records
+									{(clientFilter || itemFilter || blNumberFilter || statusFilter) && (
+										<span className="ms-2 badge bg-primary">{
+											[clientFilter && 'Client', itemFilter && 'Container', blNumberFilter && 'BL Number', statusFilter && 'Status']
+												.filter(Boolean).join(', ')
+										} filtered</span>
+									)}
+								</div>
+								<button className="btn btn-outline-secondary" onClick={() => {
+									setClientFilter('');
+									setItemFilter('');
+									setBlNumberFilter('');
+									setStatusFilter('');
+								}}>
+									<i className="fa fa-eraser me-2"></i>
+									Clear All Filters
+								</button>
+							</div>
 						</div>
 					</div>
 				</div>
